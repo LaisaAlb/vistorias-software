@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SELLER
+  INSPECTOR
+}
+
+enum InspectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime       @default(now())
+
+  inspections  Inspection[]   @relation("SellerInspections")
+  notifications Notification[]
+}
+
+model RejectionReason {
+  id        String   @id @default(cuid())
+  title     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inspections Inspection[]
+}
+
+model Inspection {
+  id               String           @id @default(cuid())
+  customerName     String
+  plate            String
+  vehicleModel     String
+  vehicleYear      Int
+  value            Decimal
+
+  status           InspectionStatus @default(PENDING)
+  rejectionComment String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  sellerId         String
+  seller           User             @relation("SellerInspections", fields: [sellerId], references: [id])
+
+  rejectionReasonId String?
+  rejectionReason   RejectionReason? @relation(fields: [rejectionReasonId], references: [id])
+
+  @@index([status])
+  @@index([plate])
+  @@index([sellerId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+}
