@@ -9,20 +9,17 @@ type ListParams = {
   page: number
   perPage: number
   status?: InspectionStatus | ""
-  plate?: string
+  q?: string // <- NOVO: busca por placa OU cliente
 }
 
 type InspectionQuery = {
   page: number
   perPage: number
   status?: InspectionStatus
-  plate?: string
+  q?: string
 }
 
-export async function listInspections(
-  token: string,
-  params: ListParams
-) {
+export async function listInspections(token: string, params: ListParams) {
   const query: InspectionQuery = {
     page: params.page,
     perPage: params.perPage,
@@ -32,8 +29,8 @@ export async function listInspections(
     query.status = params.status as InspectionStatus
   }
 
-  if (params.plate?.trim()) {
-    query.plate = params.plate.trim()
+  if (params.q?.trim()) {
+    query.q = params.q.trim()
   }
 
   return http<Paginated<Inspection>>({

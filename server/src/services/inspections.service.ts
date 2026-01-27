@@ -2,6 +2,10 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { bus } from '@/lib/bus'
 
+function normalizePlate(value: string) {
+  return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+}
+
 export const inspectionsService = {
   async create(input: {
     sellerId: string
@@ -9,13 +13,13 @@ export const inspectionsService = {
     plate: string
     vehicleModel: string
     vehicleYear: number
-    value: string 
+    value: string
   }) {
     const inspection = await prisma.inspection.create({
       data: {
         sellerId: input.sellerId,
         customerName: input.customerName,
-        plate: input.plate.toUpperCase(),
+        plate: normalizePlate(input.plate), // <- normaliza placa
         vehicleModel: input.vehicleModel,
         vehicleYear: input.vehicleYear,
         value: new Prisma.Decimal(input.value),
@@ -43,7 +47,6 @@ export const inspectionsService = {
     if (!inspection) return null
 
     if (inspection.status !== 'PENDING') {
-      // regra simples: só muda de PENDING
       throw new Error('INVALID_STATUS_TRANSITION')
     }
 
@@ -76,15 +79,30 @@ export const inspectionsService = {
     page: number
     perPage: number
     status?: 'PENDING' | 'APPROVED' | 'REJECTED'
-    plate?: string
+    q?: string // <- busca por placa OU cliente
+    plate?: string // (opcional) se você ainda quiser manter compatível
   }) {
-    const where: any = {}
+    const where: Prisma.InspectionWhereInput = {}
 
     if (input.role === 'SELLER') where.sellerId = input.userId
     if (input.status) where.status = input.status
-    if (input.plate) where.plate = { contains: input.plate.toUpperCase() }
+
+    const q = input.q?.trim()
+    const plate = input.plate?.trim()
+
+    if (q) {
+      const plateQ = normalizePlate(q)
+
+      where.OR = [
+        { plate: { contains: plateQ } }, 
+        { customerName: { contains: q, mode: 'insensitive' } }, 
+      ]
+    } else if (plate) {
+      where.plate = { contains: normalizePlate(plate) }
+    }
 
     const skip = (input.page - 1) * input.perPage
+
     const [items, total] = await Promise.all([
       prisma.inspection.findMany({
         where,
@@ -107,3 +125,4 @@ export const inspectionsService = {
     }
   },
 }
+

@@ -7,8 +7,10 @@ type Props = {
 
 export function Pagination({ page, totalPages, onPrev, onNext }: Props) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t text-sm text-gray-500">
-      <span>Página {page} de {totalPages || 1}</span>
+   <div className="flex items-center justify-between px-4 py-3 border rounded-lg text-sm text-gray-500 bg-gray-50">
+      <span>
+        Mostrando {page} de {totalPages || 1} resultados
+      </span>
 
       <div className="flex gap-2">
         <button
@@ -19,6 +21,7 @@ export function Pagination({ page, totalPages, onPrev, onNext }: Props) {
         >
           Anterior
         </button>
+
         <button
           className="border rounded px-3 py-1 disabled:opacity-40"
           disabled={page >= totalPages}
@@ -31,3 +34,4 @@ export function Pagination({ page, totalPages, onPrev, onNext }: Props) {
     </div>
   )
 }
+

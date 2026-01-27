@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom"
 import Login from "../pages/Login/login"
-import InspectionsList from "../pages/Inspections/InspectionsList"
+import InspectionsList from "../pages/Inspections/inspectionsList"
 import { AppLayout } from "../layout/appLayout"
 import Dashboard from "../pages/Dashboard/dashboard"
 import ReasonsForRejection from "../pages/ReasonsForRejection/reasonsForRejection"

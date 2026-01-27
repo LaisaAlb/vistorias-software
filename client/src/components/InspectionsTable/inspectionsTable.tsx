@@ -1,4 +1,4 @@
-import { Calendar, Check, Send, X } from 'lucide-react'
+import { Calendar, CheckCircle, Send, XCircle } from 'lucide-react'
 import { StatusBadge } from '../StatusBadge/statusBadge'
 import type { Inspection } from '../../interfaces/inspection'
 
@@ -77,7 +77,7 @@ export function InspectionsTable({
                         type="button"
                         title="Aprovar"
                       >
-                        <Check size={18} />
+                        <CheckCircle size={18} />
                       </button>
                       <button
                         className="text-red-600 disabled:opacity-40"
@@ -86,7 +86,7 @@ export function InspectionsTable({
                         type="button"
                         title="Reprovar"
                       >
-                        <X size={18} />
+                        <XCircle size={18} />
                       </button>
                     </div>
                   ) : (

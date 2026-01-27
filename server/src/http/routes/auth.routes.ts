@@ -22,10 +22,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.status(401).send({ message: 'Invalid credentials' })
       }
 
-      const token = await reply.jwtSign(
-        { role: user.role, sub: user.id },
-        { subject: user.id }
-      )
+      const token = await reply.jwtSign({ role: user.role, sub: user.id }, { subject: user.id });
 
       return reply.send({
         token,

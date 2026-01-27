@@ -1,89 +1,111 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import type { Role, User, LoginResponse } from "../interfaces/auth"
-import { loginService } from "../services/auth.service"
+import React, { createContext, useContext, useMemo, useState, useEffect } from 'react'
+import { loginService } from '../services/auth.service'
+import { clearSession, loadSession, saveSession, isTokenExpired } from '../utils/auth-storage'
+import type { User, LoginResponse, Role } from '../interfaces/auth'
 
-type AuthState = {
-  token: string | null
-  user: User | null
-}
-
-type AuthContextType = {
+type AuthContextValue = {
   token: string | null
   user: User | null
   isAuthenticated: boolean
+  isReady: boolean
   login: (email: string, password: string) => Promise<LoginResponse>
   logout: () => void
-  hasRole: (...roles: Role[]) => boolean
+  hasRole: (role: Role) => boolean
 }
 
-const STORAGE_KEY = "epta.auth"
-
-const AuthContext = createContext({} as AuthContextType)
+const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    token: null,
-    user: null,
-  })
+  // ✅ hidrata na criação do state (antes do primeiro render)
+  const session = loadSession()
 
+  const [token, setToken] = useState<string | null>(() => session?.token ?? null)
+  const [user, setUser] = useState<User | null>(() => session?.user ?? null)
+  const [isReady, setIsReady] = useState<boolean>(() => true)
+
+  // ✅ se quiser, valida token ao montar
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return
-
-    try {
-      const parsed = JSON.parse(raw) as AuthState
-      if (parsed?.token && parsed?.user) {
-        setState(parsed)
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY)
+    if (token && isTokenExpired(token)) {
+      clearSession()
+      setToken(null)
+      setUser(null)
     }
   }, [])
 
-  const isAuthenticated = !!state.token && !!state.user
+  // ✅ auto logout quando expirar
+  useEffect(() => {
+    if (!token) return
+    if (isTokenExpired(token)) {
+      clearSession()
+      setToken(null)
+      setUser(null)
+      return
+    }
+
+    const payload = (() => {
+      try {
+        const [, p] = token.split('.')
+        const base64 = p.replace(/-/g, '+').replace(/_/g, '/')
+        const padded = base64.padEnd(base64.length + (4 - (base64.length % 4 || 4)) % 4, '=')
+        return JSON.parse(atob(padded)) as { exp?: number }
+      } catch {
+        return null
+      }
+    })()
+
+    const expSec = payload?.exp
+    if (!expSec) return
+
+    const ms = expSec * 1000 - Date.now()
+    if (ms <= 0) return
+
+    const t = window.setTimeout(() => {
+      clearSession()
+      setToken(null)
+      setUser(null)
+    }, ms)
+
+    return () => window.clearTimeout(t)
+  }, [token])
 
   async function login(email: string, password: string) {
     const data = await loginService({ email, password })
 
-    const next: AuthState = {
-      token: data.token,
-      user: data.user,
-    }
-
-    setState(next)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    setToken(data.token)
+    setUser(data.user)
+    saveSession(data)
 
     return data
   }
 
   function logout() {
-    setState({ token: null, user: null })
-    localStorage.removeItem(STORAGE_KEY)
+    clearSession()
+    setToken(null)
+    setUser(null)
   }
 
-  function hasRole(...roles: Role[]) {
-    return !!state.user && roles.includes(state.user.role)
+  function hasRole(role: Role) {
+    return user?.role === role
   }
 
-  const value = useMemo(
+  const value = useMemo<AuthContextValue>(
     () => ({
-      token: state.token,
-      user: state.user,
-      isAuthenticated,
+      token,
+      user,
+      isAuthenticated: !!token && !!user,
+      isReady,
       login,
       logout,
       hasRole,
     }),
-    [state.token, state.user, isAuthenticated]
+    [token, user, isReady]
   )
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
 }

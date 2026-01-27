@@ -1,8 +1,8 @@
 import { useAuth } from "../../contexts/AuthContext"
 import { useDashboardData } from "../../hooks/useDashboardData"
-import { DashboardOverview } from "../../components/StatsCard/DashboardOverview"
+import { DashboardOverview } from "../../components/StatsCard/dashboardOverview"
 import { TeamPerformanceTable } from "../../components/InspectionsTable/TeamPerformanceTable"
-import { VehicleInsights } from "../../components/StatsCard/VehicleInsights"
+import { VehicleInsights } from "../../components/StatsCard/vehicleInsights"
 
 export default function Dashboard() {
   const { token, user } = useAuth()

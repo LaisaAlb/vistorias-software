@@ -15,12 +15,13 @@ export async function inspectionsRoutes(app: FastifyInstance) {
           page: z.coerce.number().min(1).default(1),
           perPage: z.coerce.number().min(1).max(50).default(10),
           status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+          q: z.string().optional(),
           plate: z.string().optional(),
         }),
       },
     },
     async (request) => {
-      const { page, perPage, status, plate } = request.query as any
+      const { page, perPage, status, q, plate } = request.query as any
       const user = request.user as any
 
       return inspectionsService.list({
@@ -29,10 +30,12 @@ export async function inspectionsRoutes(app: FastifyInstance) {
         page,
         perPage,
         status,
+        q,
         plate,
       })
     }
   )
+
 
   app.post(
     '/inspections',

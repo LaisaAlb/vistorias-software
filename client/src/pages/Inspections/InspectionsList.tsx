@@ -56,7 +56,7 @@ export default function InspectionsList() {
         page,
         perPage,
         status: status || undefined,
-        plate: search || undefined,
+        q: search || undefined, 
       })
 
       setItems(data.items)
@@ -72,6 +72,7 @@ export default function InspectionsList() {
 
   useEffect(() => {
     fetchList()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, page, perPage, status, search])
 
   useEffect(() => {
@@ -244,7 +245,7 @@ export default function InspectionsList() {
           Carregando vistorias...
         </div>
       ) : (
-        <>
+        <div className="bg-white border rounded-lg overflow-hidden">
           <InspectionsTable
             items={items}
             isInspector={!!isInspector}
@@ -259,7 +260,7 @@ export default function InspectionsList() {
             onPrev={() => setPage((p) => Math.max(1, p - 1))}
             onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
           />
-        </>
+        </div>
       )}
 
       <NewInspectionModal

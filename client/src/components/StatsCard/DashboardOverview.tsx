@@ -1,5 +1,5 @@
 import { BarChart3, TrendingUp, Clock, AlertTriangle } from "lucide-react"
-import { DashboardStatsCard } from "../../components/StatsCard/dashboardStatsCard"
+import { DashboardStatsCard } from "./dashboardStatsCard"
 
 type Props = {
   loading: boolean

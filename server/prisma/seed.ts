@@ -32,7 +32,6 @@ async function main() {
     },
   })
 
-  // Motivos iniciais (opcional, mas ajuda na correção)
   const reasons = ['Pneu careca', 'Chassi adulterado', 'Vidro trincado']
   for (const title of reasons) {
     await prisma.rejectionReason.upsert({

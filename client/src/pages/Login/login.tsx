@@ -32,8 +32,11 @@ export default function Login() {
       const msg = e instanceof Error ? e.message : "Falha no login"
       setError(msg)
       toast.error(msg)
+    } finally {
+      setIsSubmitting(false)
     }
   }
+
 
   async function quickLogin(which: 'seller' | 'inspector') {
     const creds =
