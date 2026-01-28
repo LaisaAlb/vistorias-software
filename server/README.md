@@ -68,6 +68,18 @@ Authorization: Bearer <token> `
 - GET /notifications/unread-count
 - PATCH /notifications/:id/read
 
+## Testes
+
+Os testes unitários do backend utilizam Vitest e focam na camada de serviços (regras de negócio),
+sem dependência de banco (Prisma mockado).
+
+### Rodar testes
+```bash
+pnpm install
+pnpm test
+```
+
+
 ## 🧠 Observações Técnicas
 - Organização por domínio
 - Middleware de autenticação
